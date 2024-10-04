@@ -2,28 +2,29 @@ package server
 
 import (
 	"fmt"
+	"go-store/basket/internal/database"
+	"go-store/basket/internal/database/repository"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
-
-	"go-store/internal/database"
 )
 
 type Server struct {
 	port int
-
+	repository repository.Repository
 	db database.Service
 }
 
 func NewServer() *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	db := database.New()
 	NewServer := &Server{
 		port: port,
-
-		db: database.New(),
+		db: db,
+		repository: repository.NewMongoBasketRepository(db.GetClient()),
 	}
 
 	// Declare Server config

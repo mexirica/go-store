@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"go-store/internal/server"
+	"go-store/basket/internal/server"
 )
 
 func gracefulShutdown(apiServer *http.Server) {
