@@ -2,17 +2,15 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"go-store/catalog/internal/server"
 	"go-store/pkg/logging"
 	"log"
 	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"go-store/basket/internal/server"
 )
 
 const ElasticAddress = "http://localhost:9200"
@@ -54,7 +52,7 @@ func main() {
 	go gracefulShutdown(newServer)
 
 	err = newServer.ListenAndServe()
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		panic(fmt.Sprintf("http newServer error: %s", err))
+	if err != nil {
+		panic(fmt.Sprintf("cannot start newServer: %s", err))
 	}
 }

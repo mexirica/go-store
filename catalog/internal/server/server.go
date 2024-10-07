@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"go-store/basket/internal/database"
-	"go-store/basket/internal/database/repository"
+	"go-store/catalog/internal/database"
+	"go-store/catalog/internal/database/repository"
 	"net/http"
 	"os"
 	"strconv"
