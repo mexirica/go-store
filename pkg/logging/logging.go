@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"log"
-	"net/http"
-	"time"
 )
 
 type elasticHook struct {
@@ -91,4 +94,33 @@ func ErrorMiddleware(logger *logrus.Logger) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+
+func NewLogger(path string) (*logrus.Logger, error) {
+    logger := logrus.New()
+
+    // Extrair o diretório do caminho do arquivo
+    dir := filepath.Dir(path)
+
+    // Criar o diretório, se ele não existir
+    err := os.MkdirAll(dir, os.ModePerm)
+    if err != nil {
+        logger.Fatal("Erro ao criar diretório:", err)
+        return nil, err
+    }
+
+    // Abrir ou criar o arquivo de log
+    file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+    if err != nil {
+        logger.Fatal("Erro ao abrir/criar o arquivo de log:", err)
+        return nil, err
+    }
+
+    // Configurar o logger para usar o arquivo como saída
+    logger.SetOutput(file)
+    logger.SetFormatter(&logrus.JSONFormatter{})
+    logger.SetReportCaller(true)
+
+    return logger, nil
 }

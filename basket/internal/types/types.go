@@ -6,19 +6,20 @@ import (
 )
 
 type ShoppingCart struct {
-    ID primitive.ObjectID `bson:"_id,omitempty"`
-    UserName string `bson:"user_name"`
-    Items    []ShoppingCartItem `bson:"items"`
+    ID primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+    UserName string `bson:"user_name" json:"user_name"`
+    Items    []ShoppingCartItem `bson:"items" json:"items"`
+    TotalPrice float32 `bson:"total_price" json:"total_price"`
 }
 
 type ShoppingCartItem struct {
-    Quantity int `bson:"quantity"`
-    Color   string `bson:"color"`
-    Price float32 `bson:"price"`
-    ProductName string `bson:"product_name"`
+    Quantity int `bson:"quantity" json:"quantity"`
+    Color   string `bson:"color" json:"color"`
+    Price float32 `bson:"price" json:"price"`
+    ProductName string `bson:"product_name" json:"product_name"`
 }
 
-func (sc *ShoppingCart) TotalPrice() float32 {
+func (sc *ShoppingCart) GetTotalPrice() float32 {
     var totalPrice float32
     for _, item := range sc.Items {
         totalPrice += item.Price * float32(item.Quantity)

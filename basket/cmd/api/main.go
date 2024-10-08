@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"go-store/pkg/logging"
-	"log"
 	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"go-store/basket/internal/server"
 )
@@ -40,16 +40,19 @@ func gracefulShutdown(apiServer *http.Server) {
 
 func main() {
 	hook, err := logging.NewElasticHook([]string{ElasticAddress})
-
 	if err != nil {
 		log.Fatalf("Error creating hook: %v", err)
 	}
 
-	server.Logger = logrus.New()
-	server.Logger.AddHook(hook)
+	logger,err := logging.NewLogger("logs/log.json")
+	if err != nil {
+		log.Fatalf("Error creating logger: %v", err)
+	}
+
+	logger.AddHook(hook)
 	defer hook.Close()
 
-	newServer := server.NewServer()
+	newServer := server.NewServer(logger)
 
 	go gracefulShutdown(newServer)
 

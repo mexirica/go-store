@@ -10,21 +10,24 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	port       int
 	repository repository.Repository
 	db         database.Service
+	logger *logrus.Logger
 }
 
-func NewServer() *http.Server {
+func NewServer(logger *logrus.Logger) *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	db := database.New()
 	NewServer := &Server{
 		port:       port,
 		db:         db,
-		repository: repository.NewMongoRepository(db.GetClient()),
+		logger: logger,
+		repository: repository.NewMongoRepository(db.GetClient(),logger),
 	}
 
 	// Declare Server config

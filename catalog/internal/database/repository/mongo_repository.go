@@ -2,10 +2,10 @@ package repository
 
 import (
 	"errors"
-	"go-store/catalog/internal/server"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,15 +16,17 @@ import (
 type MongoRepository struct {
 	client *mongo.Client
 	coll   *mongo.Collection
+	logger *logrus.Logger
 }
 
 // NewMongoRepository creates a new instance of MongoRepository.
 // It initializes the collection using the database name from the environment variable DB_CATALOG_NAME.
-func NewMongoRepository(client *mongo.Client) *MongoRepository {
+func NewMongoRepository(client *mongo.Client, logger *logrus.Logger) *MongoRepository {
 	dbname := os.Getenv("DB_CATALOG_NAME")
 	return &MongoRepository{
 		client: client,
 		coll:   client.Database(dbname).Collection("catalog"),
+		logger: logger,
 	}
 }
 
@@ -32,12 +34,12 @@ func NewMongoRepository(client *mongo.Client) *MongoRepository {
 // It returns the created product or an error if the operation fails.
 func (r *MongoRepository) CreateProduct(product *Product, c *gin.Context) (*Product, error) {
 	if product == nil {
-		server.Logger.Error("Product is nil")
+		r.logger.Error("Product is nil")
 		return nil, errors.New("product cannot be nil")
 	}
 	_, err := r.coll.InsertOne(c, product)
 	if err != nil {
-		server.Logger.WithError(err).Error("Error creating product")
+		r.logger.WithError(err).Error("Error creating product")
 		return nil, err
 	}
 	return product, nil
@@ -48,17 +50,17 @@ func (r *MongoRepository) CreateProduct(product *Product, c *gin.Context) (*Prod
 func (r *MongoRepository) GetProductById(id string, c *gin.Context) (*Product, error) {
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		server.Logger.WithError(err).Error("Invalid product ID")
+		r.logger.WithError(err).Error("Invalid product ID")
 		return nil, errors.New("invalid product ID")
 	}
 	var product Product
 	err = r.coll.FindOne(c, bson.M{"_id": objectId}).Decode(&product)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			server.Logger.WithError(err).Error("Product not found")
+			r.logger.WithError(err).Error("Product not found")
 			return nil, errors.New("product not found")
 		}
-		server.Logger.WithError(err).Error("Error getting product by ID")
+		r.logger.WithError(err).Error("Error getting product by ID")
 		return nil, err
 	}
 	return &product, nil
@@ -69,14 +71,14 @@ func (r *MongoRepository) GetProductById(id string, c *gin.Context) (*Product, e
 func (r *MongoRepository) GetProducts(c *gin.Context) ([]*Product, error) {
 	cursor, err := r.coll.Find(c, bson.M{})
 	if err != nil {
-		server.Logger.WithError(err).Error("Error getting products")
+		r.logger.WithError(err).Error("Error getting products")
 		return nil, err
 	}
 	defer cursor.Close(c)
 	var products []*Product
 	err = cursor.All(c, &products)
 	if err != nil {
-		server.Logger.WithError(err).Error("Error decoding products")
+		r.logger.WithError(err).Error("Error decoding products")
 		return nil, err
 	}
 	return products, nil
@@ -87,12 +89,12 @@ func (r *MongoRepository) GetProducts(c *gin.Context) ([]*Product, error) {
 func (r *MongoRepository) UpdateProduct(filter Filter, params *UpdateParams, c *gin.Context) (*Product, error) {
 	id, ok := filter["id"].(string)
 	if !ok || id == "" {
-		server.Logger.Error("Invalid filter ID")
+		r.logger.Error("Invalid filter ID")
 		return nil, errors.New("invalid filter ID")
 	}
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		server.Logger.WithError(err).Error("Invalid product ID")
+		r.logger.WithError(err).Error("Invalid product ID")
 		return nil, errors.New("invalid product ID")
 	}
 	update := bson.M{
@@ -106,7 +108,7 @@ func (r *MongoRepository) UpdateProduct(filter Filter, params *UpdateParams, c *
 	opts := options.Update().SetUpsert(false)
 	_, err = r.coll.UpdateOne(c, bson.M{"_id": objectId}, update, opts)
 	if err != nil {
-		server.Logger.WithError(err).Error("Error updating product")
+		r.logger.WithError(err).Error("Error updating product")
 		return nil, err
 	}
 	return r.GetProductById(id, c)
@@ -117,12 +119,12 @@ func (r *MongoRepository) UpdateProduct(filter Filter, params *UpdateParams, c *
 func (r *MongoRepository) DeleteProduct(id string, c *gin.Context) error {
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		server.Logger.WithError(err).Error("Invalid product ID")
+		r.logger.WithError(err).Error("Invalid product ID")
 		return errors.New("invalid product ID")
 	}
 	_, err = r.coll.DeleteOne(c, bson.M{"_id": objectId})
 	if err != nil {
-		server.Logger.WithError(err).Error("Error deleting product")
+		r.logger.WithError(err).Error("Error deleting product")
 		return err
 	}
 	return nil
@@ -132,19 +134,19 @@ func (r *MongoRepository) DeleteProduct(id string, c *gin.Context) error {
 // It returns a slice of products or an error if the operation fails.
 func (r *MongoRepository) GetProductsByCategory(category string, c *gin.Context) ([]*Product, error) {
 	if category == "" {
-		server.Logger.Error("Category cannot be empty")
+		r.logger.Error("Category cannot be empty")
 		return nil, errors.New("category cannot be empty")
 	}
 	cursor, err := r.coll.Find(c, bson.M{"category": category})
 	if err != nil {
-		server.Logger.WithError(err).Error("Error getting products by category")
+		r.logger.WithError(err).Error("Error getting products by category")
 		return nil, err
 	}
 	defer cursor.Close(c)
 	var products []*Product
 	err = cursor.All(c, &products)
 	if err != nil {
-		server.Logger.WithError(err).Error("Error decoding products by category")
+		r.logger.WithError(err).Error("Error decoding products by category")
 		return nil, err
 	}
 	return products, nil
