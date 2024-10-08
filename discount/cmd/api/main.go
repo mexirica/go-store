@@ -1,7 +1,7 @@
 package main
 
 import (
-	pb "go-store/discount/grpc"
+	pb "go-store/discount/pkg/grpc"
 	"go-store/discount/internal/server"
 	"go-store/pkg/logging"
 	"log"
@@ -12,17 +12,20 @@ import (
 
 const ElasticAddress = "http://localhost:9200"
 
-
 func main() {
 	hook, err := logging.NewElasticHook([]string{ElasticAddress})
-	
 	if err != nil {
 		log.Fatalf("Error creating hook: %v", err)
 	}
 	
-	//server.Logger = logrus.New()
-	//server.Logger.AddHook(hook)
-	//defer hook.Close()
+	logger,err := logging.NewLogger("logs/log.json")
+	if err != nil {
+		log.Fatalf("Error creating logger: %v", err)
+	}
+	
+	logger.AddHook(hook)
+	defer hook.Close()
+
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)

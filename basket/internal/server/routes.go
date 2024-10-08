@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "go-store/discount/grpc"
+	pb "go-store/discount/pkg/grpc"
 	"github.com/gin-gonic/gin"
 )
 

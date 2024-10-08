@@ -1,7 +1,7 @@
 package server
 
 import (
-	pb "go-store/discount/grpc"
+	pb "go-store/discount/pkg/grpc"
 
 	"github.com/sirupsen/logrus"
 )
