@@ -5,13 +5,12 @@ import (
 	"go-store/pkg/logging"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	pb "go-store/discount/pkg/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "go-store/discount/pkg/grpc"
-	"github.com/gin-gonic/gin"
 )
-
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
@@ -76,7 +75,7 @@ func (s *Server) StoreBasketHandler(c *gin.Context) {
 	}
 
 	s.logger.WithFields(logrus.Fields{
-		"user_name":   basket.UserName,
+		"user_name":  basket.UserName,
 		"items":      len(basket.Items),
 		"totalPrice": basket.TotalPrice,
 	}).Info("Attempting to store shopping basket")
@@ -90,7 +89,7 @@ func (s *Server) StoreBasketHandler(c *gin.Context) {
 
 	s.logger.WithFields(logrus.Fields{
 		"user_name": basket.UserName,
-		"result":   result,
+		"result":    result,
 	}).Info("Shopping basket stored successfully")
 	c.JSON(http.StatusCreated, result)
 }
@@ -113,16 +112,16 @@ func (s *Server) DeleteBasketHandler(c *gin.Context) {
 func deductDiscount(cart *types.ShoppingCart, ctx *gin.Context, logger *logrus.Logger) error {
 	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-	 logger.Fatal("failed to connect to gRPC server at localhost:50051: %v", err)
-	 return err
+		logger.Fatal("failed to connect to gRPC server at localhost:50051: %v", err)
+		return err
 	}
 	defer conn.Close()
 	c := pb.NewDiscountProtoServiceClient(conn)
-   
+
 	r, err := c.GetDiscount(ctx, &pb.GetDiscountRequest{})
 	if err != nil {
-	 logrus.Fatal("error calling function SayHello: %v", err)
-	 return err
+		logrus.Fatal("error calling function SayHello: %v", err)
+		return err
 	}
 
 	cart.TotalPrice = cart.GetTotalPrice() - float32(r.Amount)

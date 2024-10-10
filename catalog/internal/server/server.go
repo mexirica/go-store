@@ -17,7 +17,7 @@ type Server struct {
 	port       int
 	repository repository.Repository
 	db         database.Service
-	logger *logrus.Logger
+	logger     *logrus.Logger
 }
 
 func NewServer(logger *logrus.Logger) *http.Server {
@@ -26,8 +26,8 @@ func NewServer(logger *logrus.Logger) *http.Server {
 	NewServer := &Server{
 		port:       port,
 		db:         db,
-		logger: logger,
-		repository: repository.NewMongoRepository(db.GetClient(),logger),
+		logger:     logger,
+		repository: repository.NewMongoRepository(db.GetClient(), logger),
 	}
 
 	// Declare Server config

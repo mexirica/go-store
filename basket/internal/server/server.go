@@ -25,7 +25,7 @@ func NewServer(logger *logrus.Logger) *http.Server {
 		port:       port,
 		db:         db,
 		repository: repository.NewMongoRepository(db.GetClient(), logger),
-		logger:    logger,
+		logger:     logger,
 	}
 
 	// Declare Server config

@@ -44,7 +44,7 @@ func main() {
 		log.Fatalf("Error creating hook: %v", err)
 	}
 
-	logger,err := logging.NewLogger("logs/log.json")
+	logger, err := logging.NewLogger("logs/log.json")
 	if err != nil {
 		log.Fatalf("Error creating logger: %v", err)
 	}

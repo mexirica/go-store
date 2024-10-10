@@ -42,11 +42,11 @@ func main() {
 		log.Fatalf("Error creating hook: %v", err)
 	}
 
-	logger,err := logging.NewLogger("logs/api.log")
+	logger, err := logging.NewLogger("logs/api.log")
 	if err != nil {
 		log.Fatalf("Error creating logger: %v", err)
 	}
-	
+
 	logger.AddHook(hook)
 	defer hook.Close()
 
