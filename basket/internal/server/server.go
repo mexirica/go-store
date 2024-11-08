@@ -5,6 +5,8 @@ import (
 	"go-store/basket/internal/database"
 	"go-store/basket/internal/database/repository"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -19,7 +21,10 @@ type Server struct {
 }
 
 func NewServer(logger *logrus.Logger) *http.Server {
-	port := 8080 //strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		logger.WithError(err).Fatal("Error parsing PORT")
+	}
 	db := database.New()
 	NewServer := &Server{
 		port:       port,
